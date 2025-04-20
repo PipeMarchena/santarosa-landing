@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Santa Rosa Fresh Market - Del Campo a tu Mesa</title>
+    <!-- NO PDF Library needed -->
+    <style>
+        /* --- Estilos Generales --- */
+        :root {
+             --primary-green: #4CAF50; --dark-green: #2E7D32; --light-green: #E8F5E9;
+             --border-green: #C8E6C9; --invoice-border-green: #AED581;
+             --font-invoice: Consolas, 'Courier New', Courier, monospace;
+             --white: #ffffff; --text-dark: #333; --text-light: #555; --background-grey: #f4f4f4;
+             --accent-orange: #FF9800;
+        }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: var(--background-grey); color: var(--text-dark); padding-top: 135px; /* Ajustar si nav cambia altura */ }
+        .container { max-width: 950px; margin: 20px auto; background-color: var(--white); box-shadow: 0 0 15px rgba(0, 0, 0, 0.1); border-radius: 8px; overflow: hidden; }
+        h1, h2, h3, h4 { color: var(--dark-green); }
+        section { padding: 40px 25px; border-bottom: 1px solid var(--border-green); }
+        section:last-child { border-bottom: none; }
+        section h2 { text-align: center; margin-top: 0; margin-bottom: 35px; font-size: 2em; padding-bottom: 10px; border-bottom: 2px solid var(--primary-green); display: inline-block; position: relative; left: 50%; transform: translateX(-50%); }
+
+        /* --- Header y Nav (Fijos - Revisado) --- */
+        header { background-color: var(--primary-green); color: var(--white); padding: 15px 0; text-align: center; position: fixed; width: 100%; top: 0; left: 0; z-index: 1001; box-shadow: 0 2px 5px rgba(0,0,0,0.2); height: auto; }
+        header h1 { margin: 0; font-size: 2.5em; color: var(--white); line-height: 1.1; }
+        header p { margin: 5px 0 0; font-style: italic; font-size: 0.9em;}
+        nav { background-color: var(--dark-green); padding: 10px 0; text-align: center; position: fixed; width: 100%; top: 88px; /* Ajustar si altura header cambia */ left: 0; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        nav ul { list-style: none; padding: 0; margin: 0; }
+        nav ul li { display: inline-block; margin: 0 10px; }
+        nav ul li a { color: var(--white); text-decoration: none; font-weight: bold; font-size: 0.95em; padding: 8px 10px; border-radius: 4px; transition: background-color 0.3s ease; }
+        nav ul li a:hover, nav ul li a.active { background-color: var(--primary-green); }
+
+        /* --- Grid Layout --- */
+        .grid-container { display: grid; gap: 25px; }
+        .grid-cols-2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+        .grid-cols-products { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+        .grid-cols-combos { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+
+        /* --- Sección Productos +/- --- */
+        .product-item { background-color: var(--light-green); border: 1px solid var(--border-green); padding: 15px; text-align: center; border-radius: 5px; transition: transform 0.2s ease, box-shadow 0.2s ease; display: flex; flex-direction: column; justify-content: space-between; }
+        .product-item:hover { transform: translateY(-5px); box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1); }
+        .product-item img { max-width: 100%; height: 100px; object-fit: cover; border-radius: 4px; margin-bottom: 10px; background-color: #eee; }
+        .product-item h3 { margin-top: 0; margin-bottom: 8px; font-size: 1.05em; color: var(--dark-green); }
+        .product-item .price { font-weight: bold; color: #388E3C; margin-bottom: 10px; font-size: 0.95em; }
+        .product-controls { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+        .quantity-selector { display: flex; align-items: center; gap: 8px; }
+        .qty-btn { background-color: var(--dark-green); color: var(--white); border: none; border-radius: 50%; width: 28px; height: 28px; font-size: 1.1em; font-weight: bold; line-height: 26px; cursor: pointer; transition: background-color 0.2s; padding: 0; }
+        .qty-btn:hover { background-color: var(--primary-green); }
+        .qty-btn:disabled { background-color: #ccc; cursor: not-allowed; }
+        .quantity-display { font-size: 1.1em; font-weight: bold; min-width: 25px; text-align: center; }
+        .add-checkbox-label { display: flex; align-items: center; cursor: pointer; font-size: 0.9em; }
+        .add-checkbox { margin-left: 5px; accent-color: var(--dark-green); cursor: pointer; transform: scale(1.1); }
+
+        /* --- Sección Combos --- */
+        #combos .combo-note { text-align: center; font-size: 0.95em; color: var(--text-light); margin-top: -15px; margin-bottom: 30px; padding: 10px; background-color: var(--light-green); border-radius: 4px; border: 1px dashed var(--border-green); }
+        .combo-box { background-color: var(--white); border: 2px solid var(--primary-green); padding: 20px; border-radius: 8px; text-align: center; box-shadow: 0 4px 8px rgba(0,0,0,0.08); display: flex; flex-direction: column; justify-content: space-between; }
+        .combo-box h3 { margin-top: 0; margin-bottom: 15px; font-size: 1.3em; color: var(--primary-green); border-bottom: 1px dashed var(--border-green); padding-bottom: 10px; }
+        .combo-box .price { font-size: 1.4em; font-weight: bold; color: var(--dark-green); margin-bottom: 15px; }
+        .combo-box ul { list-style: none; padding: 0; margin: 0 0 15px 0; text-align: left; color: var(--text-light); font-size: 0.9em; flex-grow: 1; }
+        .combo-box ul li { margin-bottom: 6px; padding-left: 20px; position: relative; }
+        .combo-box ul li::before { content: '✓'; color: var(--primary-green); position: absolute; left: 0; font-weight: bold; }
+        .combo-add-control { margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border-green); display: flex; justify-content: center; }
+        .combo-add-control .add-checkbox-label { background-color: var(--primary-green); color: var(--white); padding: 8px 15px; border-radius: 4px; transition: background-color 0.2s; display: inline-flex; }
+        .combo-add-control .add-checkbox-label:hover { background-color: var(--dark-green); }
+        .combo-checkbox { margin-left: 8px; }
+
+
+        /* --- Sección Pedidos (Factura Estilo Original + Nuevos Elementos) --- */
+        #pedidos .invoice-container { margin: 0 auto; max-width: 700px; }
+        #pedidos .invoice { border: 1px solid var(--invoice-border-green); background-color: var(--white); padding: 25px; font-family: var(--font-invoice); box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-radius: 4px; color: var(--text-dark); margin-bottom: 25px; display: block; }
+        .invoice-header { text-align: center; margin-bottom: 25px; border-bottom: 1px solid #ccc; padding-bottom: 15px; }
+        .invoice table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 0.9em; }
+        .invoice th, .invoice td { border: 1px solid #dddddd; padding: 8px; text-align: left; }
+        .invoice th { background-color: var(--light-green); color: var(--dark-green); font-weight: bold; }
+        .invoice td.amount, .invoice th.amount { text-align: right; }
+        .invoice td.quantity { text-align: center; font-weight: bold; }
+        .invoice .totals { margin-top: 20px; text-align: right; }
+        .invoice .totals p { margin: 5px 0; font-size: 1em; }
+        .invoice .totals strong { color: var(--dark-green); display: inline-block; min-width: 90px; font-weight: bold; }
+        .invoice .total-final { font-size: 1.2em; font-weight: bold; border-top: 2px solid var(--primary-green); padding-top: 10px; margin-top: 10px; }
+
+        .pedido-actions { text-align: center; display: block; }
+        .cta-button { display: inline-block; background-color: var(--accent-orange); color: var(--white); padding: 12px 25px; border-radius: 5px; text-decoration: none; font-weight: bold; font-size: 1em; margin-top: 15px; transition: background-color 0.3s ease, transform 0.2s ease; border: none; cursor: pointer; text-align: center; }
+        .cta-button:hover { background-color: #f57c00; transform: translateY(-2px); }
+        .cta-button:disabled { background-color: #bdbdbd; cursor: not-allowed; transform: none; }
+        #confirmar-pedido-btn { background-color: var(--primary-green); }
+        #confirmar-pedido-btn:hover { background-color: var(--dark-green); }
+        #pedido-confirmacion { display: none; margin-top: 20px; padding: 20px; background-color: var(--light-green); border: 1px solid var(--primary-green); border-radius: 5px; text-align: center; }
+        #pedido-confirmacion p { font-size: 1.1em; color: var(--dark-green); margin-bottom: 15px; }
+        #pedido-confirmacion .checkmark { font-size: 2em; display: block; margin-bottom: 10px; }
+        #reiniciar-pedido-btn { background-color: var(--text-light); }
+        #reiniciar-pedido-btn:hover { background-color: var(--text-dark); }
+
+        /* --- Estilos Modal de Entrega --- */
+        .modal { display: none; position: fixed; z-index: 1050; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6); }
+        .modal-content { background-color: #fefefe; margin: 8% auto; padding: 30px; border: 1px solid #888; width: 85%; max-width: 550px; border-radius: 8px; position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .close-btn { color: #aaa; float: right; font-size: 28px; font-weight: bold; position: absolute; right: 15px; top: 10px; line-height: 1; }
+        .close-btn:hover, .close-btn:focus { color: black; text-decoration: none; cursor: pointer; }
+        .modal h3 { text-align: center; margin-top: 0; margin-bottom: 25px; color: var(--dark-green); }
+        .modal-form label { display: block; margin-bottom: 6px; font-weight: bold; font-size: 0.9em; color: var(--dark-green); }
+        .modal-form input[type="text"], .modal-form input[type="tel"], .modal-form select { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid var(--border-green); border-radius: 4px; box-sizing: border-box; font-size: 0.95em; }
+        .modal-form .radio-group label { display: inline-block; margin-right: 15px; font-weight: normal; font-size: 0.9em; cursor:pointer;} /* Added cursor */
+        .modal-form .radio-group input[type="radio"] { margin-right: 5px; accent-color: var(--dark-green); cursor:pointer;}
+        .modal-form .form-note { font-size: 0.8em; color: var(--text-light); margin-top: -10px; margin-bottom: 15px; }
+        #finalizar-pedido-btn { width: 100%; margin-top: 20px; background-color: var(--primary-green); }
+        #finalizar-pedido-btn:hover { background-color: var(--dark-green); }
+        .modal-form .error-message { color: red; font-size: 0.85em; margin-top: -10px; margin-bottom: 10px; display: none; }
+
+
+        /* --- Sección Suscripción --- */
+        #suscripcion { background-color: var(--light-green); } #suscripcion p, #suscripcion ul { color: var(--text-light); font-size: 0.95em; line-height: 1.7; } #suscripcion ul { list-style: disc; margin-left: 25px; margin-bottom: 20px;} #suscripcion strong { color: var(--dark-green); } .subscription-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 20px; } .subscription-box { background: var(--white); padding: 20px; border-radius: 5px; border: 1px solid var(--border-green); text-align: center; } .subscription-box h4 { color: var(--primary-green); margin-top: 0; } .subscription-box .price { font-size: 1.3em; font-weight: bold; color: var(--dark-green); margin: 10px 0; } .cta-button.whatsapp-link { background-color: #25D366; } .cta-button.whatsapp-link:hover { background-color: #1DAE52; }
+
+        /* --- Sección Personal --- */
+        #personal p { line-height: 1.7; text-align: justify; margin-bottom: 15px; color: var(--text-light); } .team-member { display: flex; align-items: center; gap: 20px; background-color: var(--light-green); padding: 15px; border-radius: 5px; margin-top: 20px; } .team-member img { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary-green); } .team-member h4 { margin: 0 0 5px 0; } .team-member span { font-style: italic; color: var(--primary-green); font-size: 0.9em; }
+
+        /* --- Sección Contacto con Mapa --- */
+        .contact-container { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: flex-start; }
+        .contact-info p { margin-bottom: 12px; line-height: 1.6; color: var(--text-light); }
+        .contact-info strong { color: var(--dark-green); }
+        /* Ajuste para que botón WA no use estilo CTA por defecto */
+        .whatsapp-button { display: inline-block; background-color: #25D366; color: var(--white); padding: 12px 20px; border-radius: 25px; text-decoration: none; font-weight: bold; font-size: 1em; margin-top: 5px; /* Reducido margen superior */ transition: background-color 0.3s ease, transform 0.2s ease; border: none; cursor: pointer; }
+        .whatsapp-button:hover { background-color: #1DAE52; transform: scale(1.05); }
+        .whatsapp-button::before { content: '💬 '; margin-right: 5px; }
+
+        .contact-form label { display: block; margin-bottom: 5px; font-weight: bold; color: var(--dark-green); }
+        .contact-form input[type="text"], .contact-form input[type="email"], .contact-form textarea { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid var(--border-green); border-radius: 4px; box-sizing: border-box; font-family: inherit; }
+        .contact-form textarea { resize: vertical; min-height: 120px; }
+        .contact-form button.cta-button { margin-top: 0; } /* Botón enviar usa estilo CTA */
+        .map-container { margin-top: 0; }
+        .map-container h4 { margin-bottom: 15px; color: var(--dark-green); text-align: center; }
+        .map-responsive { overflow: hidden; padding-bottom: 75%; position: relative; height: 0; border: 1px solid var(--border-green); border-radius: 5px; }
+        .map-responsive iframe { left: 0; top: 0; height: 100%; width: 100%; position: absolute; }
+
+        /* --- Footer --- */
+        footer { text-align: center; margin-top: 0; padding: 20px; font-size: 0.9em; color: var(--text-light); background-color: var(--light-green); border-top: 1px solid var(--border-green); }
+
+        /* --- Responsive Adjustments --- */
+        @media (max-width: 768px) { body { padding-top: 0; } header, nav { position: static; } .grid-cols-2, .grid-cols-products, .grid-cols-combos, .subscription-options { grid-template-columns: 1fr 1fr; } .contact-container { grid-template-columns: 1fr; gap: 30px; } section { padding: 30px 15px; } section h2 { font-size: 1.6em; } header h1 { font-size: 1.8em; } .product-controls { flex-direction: column; align-items: stretch; gap: 8px; } .quantity-selector { justify-content: center; } .add-checkbox-label { justify-content: center; margin-top: 5px; } nav ul li { margin: 0 5px; } nav ul li a { font-size: 0.9em; } .modal-content { width: 90%; margin: 15% auto; padding: 20px; } }
+        @media (max-width: 520px) { .grid-cols-2, .grid-cols-products, .grid-cols-combos, .subscription-options { grid-template-columns: 1fr; } header h1 { font-size: 1.6em; } }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Santa Rosa Fresh Market</h1>
+        <p>Del campo directo a tu mesa - Barranquilla</p>
+    </header>
+
+    <nav>
+         <ul>
+             <li><a href="#productos">Productos</a></li>
+             <li><a href="#combos">Combos</a></li>
+             <li><a href="#suscripcion">Suscripción</a></li>
+             <li><a href="#pedidos">Ver Pedido</a></li>
+             <li><a href="#personal">Nosotros</a></li>
+             <li><a href="#contacto">Contacto</a></li>
+         </ul>
+     </nav>
+
+    <div class="container">
+
+        <!-- Sección de Productos -->
+        <section id="productos">
+            <h2>Nuestros Productos Frescos</h2>
+            <p style="text-align: center; margin-top: -25px; margin-bottom: 25px; color: var(--text-light);">Ajusta la cantidad y marca la casilla para añadir al pedido.</p>
+            <div class="grid-container grid-cols-products" id="productList">
+                 <!-- Producto: Tomate Chonto -->
+                 <div class="product-item" data-product-id="tomate-chonto"> <img src="https://placehold.co/180x100/E8F5E9/2E7D32?text=Tomate" alt="Tomate Chonto"> <div><h3>Tomate Chonto</h3><p class="price">$3.500 / Libra</p></div> <div class="product-controls"> <div class="quantity-selector"> <button class="qty-btn minus-btn" onclick="changeQuantity('tomate-chonto', -1)">-</button> <span class="quantity-display" data-product-id="tomate-chonto">1</span> <button class="qty-btn plus-btn" onclick="changeQuantity('tomate-chonto', 1)">+</button> </div> <label class="add-checkbox-label"> Añadir <input type="checkbox" class="add-checkbox" value="3500" data-name="Tomate Chonto" data-unit="Libra" onchange="actualizarFactura()"> </label> </div> </div>
+                 <!-- Producto: Lechuga Crespa -->
+                 <div class="product-item" data-product-id="lechuga-crespa"> <img src="https://placehold.co/180x100/E8F5E9/2E7D32?text=Lechuga" alt="Lechuga Crespa"> <div><h3>Lechuga Crespa</h3><p class="price">$2.800 / Unidad</p></div> <div class="product-controls"> <div class="quantity-selector"> <button class="qty-btn minus-btn" onclick="changeQuantity('lechuga-crespa', -1)">-</button> <span class="quantity-display" data-product-id="lechuga-crespa">1</span> <button class="qty-btn plus-btn" onclick="changeQuantity('lechuga-crespa', 1)">+</button> </div> <label class="add-checkbox-label">Añadir <input type="checkbox" class="add-checkbox" value="2800" data-name="Lechuga Crespa" data-unit="Unidad" onchange="actualizarFactura()"></label> </div> </div>
+                 <!-- Producto: Papa Pastusa -->
+                 <div class="product-item" data-product-id="papa-pastusa"> <img src="https://placehold.co/180x100/E8F5E9/2E7D32?text=Papa" alt="Papa Pastusa"> <div><h3>Papa Pastusa</h3><p class="price">$2.200 / Libra</p></div> <div class="product-controls"> <div class="quantity-selector"> <button class="qty-btn minus-btn" onclick="changeQuantity('papa-pastusa', -1)">-</button> <span class="quantity-display" data-product-id="papa-pastusa">1</span> <button class="qty-btn plus-btn" onclick="changeQuantity('papa-pastusa', 1)">+</button> </div> <label class="add-checkbox-label">Añadir <input type="checkbox" class="add-checkbox" value="2200" data-name="Papa Pastusa" data-unit="Libra" onchange="actualizarFactura()"></label> </div> </div>
+                 <!-- Producto: Cebolla Roja -->
+                 <div class="product-item" data-product-id="cebolla-roja"> <img src="https://placehold.co/180x100/E8F5E9/2E7D32?text=Cebolla+Roja" alt="Cebolla Roja"> <div><h3>Cebolla Roja</h3><p class="price">$2.000 / Libra</p></div> <div class="product-controls"> <div class="quantity-selector"> <button class="qty-btn minus-btn" onclick="changeQuantity('cebolla-roja', -1)">-</button> <span class="quantity-display" data-product-id="cebolla-roja">1</span> <button class="qty-btn plus-btn" onclick="changeQuantity('cebolla-roja', 1)">+</button> </div> <label class="add-checkbox-label">Añadir <input type="checkbox" class="add-checkbox" value="2000" data-name="Cebolla Roja" data-unit="Libra" onchange="actualizarFactura()"></label> </div> </div>
+                 <!-- Producto: Aguacate Hass -->
+                 <div class="product-item" data-product-id="aguacate-hass"> <img src="https://placehold.co/180x100/E8F5E9/2E7D32?text=Aguacate" alt="Aguacate Hass"> <div><h3>Aguacate Hass</h3><p class="price">$4.500 / Unidad</p></div> <div class="product-controls"> <div class="quantity-selector"> <button class="qty-btn minus-btn" onclick="changeQuantity('aguacate-hass', -1)">-</button> <span class="quantity-display" data-product-id="aguacate-hass">1</span> <button class="qty-btn plus-btn" onclick="changeQuantity('aguacate-hass', 1)">+</button> </div> <label class="add-checkbox-label">Añadir <input type="checkbox" class="add-checkbox" value="4500" data-name="Aguacate Hass" data-unit="Unidad" onchange="actualizarFactura()"></label> </div> </div>
+                 <!-- Producto: Plátano Maduro -->
+                 <div class="product-item" data-product-id="platano-maduro"> <img src="https://placehold.co/180x100/E8F5E9/2E7D32?text=Pl%C3%A1tano+M" alt="Plátano Maduro"> <div><h3>Plátano Maduro</h3><p class="price">$1.500 / Unidad</p></div> <div class="product-controls"> <div class="quantity-selector"> <button class="qty-btn minus-btn" onclick="changeQuantity('platano-maduro', -1)">-</button> <span class="quantity-display" data-product-id="platano-maduro">1</span> <button class="qty-btn plus-btn" onclick="changeQuantity('platano-maduro', 1)">+</button> </div> <label class="add-checkbox-label">Añadir <input type="checkbox" class="add-checkbox" value="1500" data-name="Plátano Maduro" data-unit="Unidad" onchange="actualizarFactura()"></label> </div> </div>
+                 <!-- Producto: Ñame Espino -->
+                 <div class="product-item" data-product-id="name-espino"> <img src="https://placehold.co/180x100/E8F5E9/2E7D32?text=%C3%91ame" alt="Ñame Espino"> <div><h3>Ñame Espino</h3><p class="price">$3.800 / Libra</p></div> <div class="product-controls"> <div class="quantity-selector"> <button class="qty-btn minus-btn" onclick="changeQuantity('name-espino', -1)">-</button> <span class="quantity-display" data-product-id="name-espino">1</span> <button class="qty-btn plus-btn" onclick="changeQuantity('name-espino', 1)">+</button> </div> <label class="add-checkbox-label">Añadir <input type="checkbox" class="add-checkbox" value="3800" data-name="Ñame Espino" data-unit="Libra" onchange="actualizarFactura()"></label> </div> </div>
+                 <!-- Producto: Yuca -->
+                 <div class="product-item" data-product-id="yuca"> <img src="https://placehold.co/180x100/E8F5E9/2E7D32?text=Yuca" alt="Yuca"> <div><h3>Yuca</h3><p class="price">$2.500 / Libra</p></div> <div class="product-controls"> <div class="quantity-selector"> <button class="qty-btn minus-btn" onclick="changeQuantity('yuca', -1)">-</button> <span class="quantity-display" data-product-id="yuca">1</span> <button class="qty-btn plus-btn" onclick="changeQuantity('yuca', 1)">+</button> </div> <label class="add-checkbox-label">Añadir <input type="checkbox" class="add-checkbox" value="2500" data-name="Yuca" data-unit="Libra" onchange="actualizarFactura()"></label> </div> </div>
+                 <!-- Producto: Guineo Verde -->
+                 <div class="product-item" data-product-id="guineo-verde"> <img src="https://placehold.co/180x100/E8F5E9/2E7D32?text=Guineo+Verde" alt="Guineo Verde"> <div><h3>Guineo Verde</h3><p class="price">$1.200 / Unidad</p></div> <div class="product-controls"> <div class="quantity-selector"> <button class="qty-btn minus-btn" onclick="changeQuantity('guineo-verde', -1)">-</button> <span class="quantity-display" data-product-id="guineo-verde">1</span> <button class="qty-btn plus-btn" onclick="changeQuantity('guineo-verde', 1)">+</button> </div> <label class="add-checkbox-label">Añadir <input type="checkbox" class="add-checkbox" value="1200" data-name="Guineo Verde" data-unit="Unidad" onchange="actualizarFactura()"></label> </div> </div>
+                 <!-- Producto: Limón Mandarino -->
+                 <div class="product-item" data-product-id="limon-mandarino"> <img src="https://placehold.co/180x100/E8F5E9/2E7D32?text=Lim%C3%B3n" alt="Limón Mandarino"> <div><h3>Limón Mandarino</h3><p class="price">$3.000 / Libra</p></div> <div class="product-controls"> <div class="quantity-selector"> <button class="qty-btn minus-btn" onclick="changeQuantity('limon-mandarino', -1)">-</button> <span class="quantity-display" data-product-id="limon-mandarino">1</span> <button class="qty-btn plus-btn" onclick="changeQuantity('limon-mandarino', 1)">+</button> </div> <label class="add-checkbox-label">Añadir <input type="checkbox" class="add-checkbox" value="3000" data-name="Limón Mandarino" data-unit="Libra" onchange="actualizarFactura()"></label> </div> </div>
+                 <!-- Producto: Maracuyá -->
+                 <div class="product-item" data-product-id="maracuya"> <img src="https://placehold.co/180x100/E8F5E9/2E7D32?text=Maracuy%C3%A1" alt="Maracuyá"> <div><h3>Maracuyá</h3><p class="price">$4.000 / Libra</p></div> <div class="product-controls"> <div class="quantity-selector"> <button class="qty-btn minus-btn" onclick="changeQuantity('maracuya', -1)">-</button> <span class="quantity-display" data-product-id="maracuya">1</span> <button class="qty-btn plus-btn" onclick="changeQuantity('maracuya', 1)">+</button> </div> <label class="add-checkbox-label">Añadir <input type="checkbox" class="add-checkbox" value="4000" data-name="Maracuyá" data-unit="Libra" onchange="actualizarFactura()"></label> </div> </div>
+                 <!-- Producto: Lulo -->
+                 <div class="product-item" data-product-id="lulo"> <img src="https://placehold.co/180x100/E8F5E9/2E7D32?text=Lulo" alt="Lulo"> <div><h3>Lulo</h3><p class="price">$4.800 / Libra</p></div> <div class="product-controls"> <div class="quantity-selector"> <button class="qty-btn minus-btn" onclick="changeQuantity('lulo', -1)">-</button> <span class="quantity-display" data-product-id="lulo">1</span> <button class="qty-btn plus-btn" onclick="changeQuantity('lulo', 1)">+</button> </div> <label class="add-checkbox-label">Añadir <input type="checkbox" class="add-checkbox" value="4800" data-name="Lulo" data-unit="Libra" onchange="actualizarFactura()"></label> </div> </div>
+                 <!-- Producto: Ají Topito -->
+                 <div class="product-item" data-product-id="aji-topito"> <img src="https://placehold.co/180x100/E8F5E9/2E7D32?text=Aj%C3%AD+Topito" alt="Ají Topito"> <div><h3>Ají Topito</h3><p class="price">$1.500 / Porción</p></div> <div class="product-controls"> <div class="quantity-selector"> <button class="qty-btn minus-btn" onclick="changeQuantity('aji-topito', -1)">-</button> <span class="quantity-display" data-product-id="aji-topito">1</span> <button class="qty-btn plus-btn" onclick="changeQuantity('aji-topito', 1)">+</button> </div> <label class="add-checkbox-label">Añadir <input type="checkbox" class="add-checkbox" value="1500" data-name="Ají Topito" data-unit="Porción" onchange="actualizarFactura()"></label> </div> </div>
+                 <!-- Producto: Cilantro -->
+                 <div class="product-item" data-product-id="cilantro"> <img src="https://placehold.co/180x100/E8F5E9/2E7D32?text=Cilantro" alt="Cilantro"> <div><h3>Cilantro</h3><p class="price">$1.500 / Atado</p></div> <div class="product-controls"> <div class="quantity-selector"> <button class="qty-btn minus-btn" onclick="changeQuantity('cilantro', -1)">-</button> <span class="quantity-display" data-product-id="cilantro">1</span> <button class="qty-btn plus-btn" onclick="changeQuantity('cilantro', 1)">+</button> </div> <label class="add-checkbox-label">Añadir <input type="checkbox" class="add-checkbox" value="1500" data-name="Cilantro" data-unit="Atado" onchange="actualizarFactura()"></label> </div> </div>
+                 <!-- Producto: Cebolla Larga -->
+                 <div class="product-item" data-product-id="cebolla-larga"> <img src="https://placehold.co/180x100/E8F5E9/2E7D32?text=Cebolla+Larga" alt="Cebolla Larga"> <div><h3>Cebolla Larga</h3><p class="price">$2.000 / Atado</p></div> <div class="product-controls"> <div class="quantity-selector"> <button class="qty-btn minus-btn" onclick="changeQuantity('cebolla-larga', -1)">-</button> <span class="quantity-display" data-product-id="cebolla-larga">1</span> <button class="qty-btn plus-btn" onclick="changeQuantity('cebolla-larga', 1)">+</button> </div> <label class="add-checkbox-label">Añadir <input type="checkbox" class="add-checkbox" value="2000" data-name="Cebolla Larga" data-unit="Atado" onchange="actualizarFactura()"></label> </div> </div>
+            </div>
+        </section>
+
+        <!-- Sección Combos -->
+        <section id="combos">
+             <h2>Combos Sugeridos</h2>
+              <p class="combo-note">Estos combos tienen contenido fijo para tu conveniencia. <br> Si deseas un pedido 100% a tu gusto, ¡arma tu mercado seleccionando en la sección de <a href="#productos" style="color: var(--dark-green); font-weight: bold;">Productos</a>!</p>
+             <div class="grid-container grid-cols-combos" id="comboList">
+                 <!-- ... (HTML de los 5 combos con su checkbox igual a la versión anterior) ... -->
+                 <div class="combo-box" data-combo-id="basica-semanal"> <div> <h3>Caja Básica Semanal</h3> <p class="price">$50.000</p> <ul><li>Papa Pastusa (2 L)</li><li>Yuca (2 L)</li><li>Cebolla Roja (1 L)</li><li>Tomate Chonto (1.5 L)</li><li>Plátano Verde (3 U)</li><li>Limón Mandarino (1 L)</li><li>Cilantro (1 A)</li><li>Ajo (2 Cabezas)</li></ul> </div> <div class="combo-add-control"> <label class="add-checkbox-label"> Añadir Combo <input type="checkbox" class="add-checkbox combo-checkbox" value="50000" data-name="Caja Básica Semanal" data-unit="Combo" onchange="actualizarFactura()"> </label> </div> <span class="brand">Santa Rosa Fresh Market</span> </div>
+                 <div class="combo-box" data-combo-id="kit-sancocho"> <div> <h3>Kit Sancocho Costeño</h3> <p class="price">$60.000</p> <ul><li>Ñame Espino (2 L)</li><li>Yuca (2 L)</li><li>Papa Pastusa (1 L)</li><li>Plátano Verde (2 U)</li><li>Mazorca (3 U)</li><li>Cebolla Larga (1 A Gde)</li><li>Cebolla Roja (1 L)</li><li>Ají Topito (1 Porc)</li><li>Cilantro (1 A Gde)</li><li>Auyama (1 Porc)</li></ul> </div> <div class="combo-add-control"> <label class="add-checkbox-label"> Añadir Combo <input type="checkbox" class="add-checkbox combo-checkbox" value="60000" data-name="Kit Sancocho Costeño" data-unit="Combo" onchange="actualizarFactura()"> </label> </div> <span class="brand">Santa Rosa Fresh Market</span> </div>
+                 <div class="combo-box" data-combo-id="kit-parrillada"> <div> <h3>Kit Parrillada Fin de Semana</h3> <p class="price">$65.000</p> <ul><li>Mazorca (4 U)</li><li>Papa Pastusa (2 L)</li><li>Yuca (2 L)</li><li>Cebolla Roja (1 L)</li><li>Tomate Chonto (1 L)</li><li>Aguacate Hass (2 U)</li><li>Plátano Maduro (3 U)</li><li>Limón Mandarino (1 L)</li><li>Pimentón Rojo (1 U)</li></ul> </div> <div class="combo-add-control"> <label class="add-checkbox-label"> Añadir Combo <input type="checkbox" class="add-checkbox combo-checkbox" value="65000" data-name="Kit Parrillada FDS" data-unit="Combo" onchange="actualizarFactura()"> </label> </div> <span class="brand">Santa Rosa Fresh Market</span> </div>
+                 <div class="combo-box" data-combo-id="mix-frutas"> <div> <h3>Caja Mix de Frutas Tropicales</h3> <p class="price">$55.000</p> <ul><li>Maracuyá (1.5 L)</li><li>Lulo (1.5 L)</li><li>Mango Tommy (3 U)</li><li>Guayaba (1.5 L)</li><li>Banano Criollo (1 Mano)</li><li>Naranja Valencia (2 L)</li><li>Limón Mandarino (0.5 L)</li></ul> </div> <div class="combo-add-control"> <label class="add-checkbox-label"> Añadir Combo <input type="checkbox" class="add-checkbox combo-checkbox" value="55000" data-name="Caja Mix Frutas" data-unit="Combo" onchange="actualizarFactura()"> </label> </div> <span class="brand">Santa Rosa Fresh Market</span> </div>
+                 <div class="combo-box" data-combo-id="familiar-completa"> <div> <h3>Caja Familiar Completa</h3> <p class="price">$110.000</p> <ul><li>Papa P (3L)</li> <li>Yuca (2L)</li> <li>Ñame E (2L)</li><li>Plátano V (3U)</li> <li>Plátano M (3U)</li> <li>Aguacate H (3U)</li><li>Tomate C (2L)</li> <li>Cebolla R (1.5L)</li> <li>Cebolla L (1A G)</li><li>Pimentón R (1U)</li> <li>Zanahoria (1.5L)</li> <li>Lechuga C (1U)</li><li>Limón M (1L)</li> <li>Maracuyá (1L)</li> <li>Cilantro (1A G)</li> <li>Ajo (3 Cab)</li></ul> </div> <div class="combo-add-control"> <label class="add-checkbox-label"> Añadir Combo <input type="checkbox" class="add-checkbox combo-checkbox" value="110000" data-name="Caja Familiar Completa" data-unit="Combo" onchange="actualizarFactura()"> </label> </div> <span class="brand">Santa Rosa Fresh Market</span> </div>
+             </div>
+         </section>
+
+         <!-- Sección Suscripción -->
+         <section id="suscripcion">
+            <h2>Suscríbete y Despreocúpate</h2>
+            <p>¿Quieres recibir la frescura del campo en tu puerta sin tener que pedir cada vez? ¡Nuestras suscripciones son para ti!</p>
+            <ul><li><strong>Comodidad Total:</strong> Recibe tu mercado automáticamente cada semana, quincena o mes.</li><li><strong>Siempre Fresco:</strong> Seleccionamos los mejores productos de temporada para tu caja.</li><li><strong>Ahorro:</strong> Disfruta de precios especiales y olvídate del costo de domicilio en planes seleccionados.</li><li><strong>Flexibilidad:</strong> Puedes pausar o ajustar tu suscripción cuando lo necesites.</li></ul>
+            <div class="subscription-options">
+                <div class="subscription-box"><h4>Suscripción Semanal "Esencial"</h4><p class="price">$45.000* <span style="font-size: 0.7em; color: var(--text-light);">/ sem</span></p><p>Ideal para 1-2 pers. Selección variada básica.</p><p style="font-size: 0.8em; color: var(--text-light)">*Precio est.</p></div>
+                <div class="subscription-box"><h4>Suscripción Quincenal "Familia"</h4><p class="price">$95.000* <span style="font-size: 0.7em; color: var(--text-light);">/ quin</span></p><p>Perfecta para 3-4 pers. Más variedad y frutas.</p><p style="font-size: 0.8em; color: var(--text-light)">*Precio est.</p></div>
+                <div class="subscription-box"><h4>¡Arma tu Plan!</h4><p class="price">Personalizado</p><p>Cuéntanos qué necesitas, ¡creamos un plan a tu medida!</p></div>
+            </div>
+            <div style="text-align: center; margin-top: 30px;"><p><strong>¿Interesado/a? ¡Contáctanos para más detalles!</strong></p><a href="https://wa.me/573127107669?text=Hola%20Santa%20Rosa%20Fresh%20Market!%20Me%20interesa%20la%20suscripci%C3%B3n." target="_blank" class="cta-button whatsapp-link"> Preguntar por Suscripción en WhatsApp </a> <a href="#contacto" class="cta-button" style="margin-left: 15px; background-color: var(--primary-green);"> Ir a Contacto </a></div>
+         </section>
+
+         <!-- Sección de Pedidos -->
+         <section id="pedidos">
+             <h2>Simulador de Pedido</h2>
+             <div class="invoice-container">
+                 <!-- Factura Visible Inicialmente -->
+                 <div class="invoice" id="invoiceToPrint">
+                      <div class="invoice-header"><h3>Santa Rosa Fresh Market</h3> <p>NIT: 900.123.456-7</p> <p>Barranquilla, Atlántico</p> <p>Fecha: <span id="invoice-date">--/--/----</span></p> <p><strong>Factura (Ejemplo) No:</strong> SRFM-0001</p></div>
+                      <div class="invoice-customer"><strong>Cliente:</strong> (Tus Productos Seleccionados)</div>
+                      <table>
+                          <thead> <tr> <th>Producto / Combo</th> <th class="quantity">Cant.</th> <th class="amount">Precio Unit.</th> <th class="amount">Total</th> </tr> </thead>
+                          <tbody id="invoice-items"> <tr><td colspan="4" style="text-align: center; color: #888;">Añade productos o combos marcando la casilla.</td></tr> </tbody>
+                      </table>
+                      <div class="totals">
+                          <p>Subtotal: <strong id="invoice-subtotal">$ 0</strong></p>
+                          <p>Domicilio (Estimado): <strong id="invoice-delivery">$ 5.000</strong></p>
+                          <p class="total-final">Total Estimado: <strong id="invoice-total">$ 5.000</strong></p>
+                      </div>
+                 </div>
+
+                 <!-- Acciones del Pedido (Botón inicial) -->
+                 <div class="pedido-actions" id="pedido-actions-div">
+                      <button id="confirmar-pedido-btn" class="cta-button" onclick="solicitarInfoEntrega()">
+                          Confirmar Pedido e Ingresar Datos
+                      </button>
+                      <p style="font-size:0.8em; color:#888; margin-top:10px;">
+                          Se solicitarán tus datos de entrega a continuación.
+                      </p>
+                  </div>
+
+                  <!-- Mensaje de Confirmación Final (Oculto) -->
+                  <div id="pedido-confirmacion" style="display: none;">
+                      <span class="checkmark">✅</span>
+                      <p>¡Listo! Tu pedido ha sido recibido.</p>
+                       <p style="font-size:0.9em; color: var(--text-light);">Recibirás una confirmación por WhatsApp o llamada pronto.</p>
+                      <button id="reiniciar-pedido-btn" class="cta-button" onclick="reiniciarPedido()">
+                          Realizar Nuevo Pedido
+                      </button>
+                  </div>
+             </div>
+         </section>
+
+         <!-- Sección Personal -->
+         <section id="personal">
+              <h2>Nuestro Compromiso</h2>
+              <p>En <strong>Santa Rosa Fresh Market</strong>, creemos en el poder de conectar directamente a los productores locales con tu mesa. Nacimos en Barranquilla con la misión de ofrecerte los productos más frescos y de la mejor calidad, apoyando al mismo tiempo la agricultura de nuestra región.</p>
+              <p>Seleccionamos cuidadosamente cada verdura y fruta, asegurando que llegue a tu hogar con todo su sabor y nutrientes. Queremos que disfrutes de la frescura del campo sin salir de casa, facilitando una alimentación saludable y deliciosa para ti y tu familia.</p>
+              <div class="team-member"> <img src="https://placehold.co/80x80/2E7D32/FFFFFF?text=SR" alt="Equipo Santa Rosa"><div><h4>El Equipo de Santa Rosa</h4><span>¡Apasionados por la frescura!</span><p style="font-size:0.9em; margin-top: 5px; color: var(--text-light);">Trabajamos con dedicación para llevarte lo mejor del campo atlanticense.</p></div></div>
+         </section>
+
+         <!-- Sección Contacto con Mapa -->
+         <section id="contacto">
+             <h2>Contáctanos y Ubicación</h2>
+             <div class="contact-container">
+                  <div class="contact-info-col"> <!-- Envolver info + form en una columna div -->
+                      <div class="contact-info">
+                          <h4>¿Preguntas o pedidos especiales?</h4> <p>Estamos listos para atenderte. Usa WhatsApp para la forma más rápida o envíanos un mensaje.</p> <p><strong>Pedidos WhatsApp:</strong></p> <a href="https://wa.me/573127107669?text=Hola%20Santa%20Rosa%20Fresh%20Market!%20Quisiera%20hacer%20un%20pedido." target="_blank" class="whatsapp-button"> Chatea por WhatsApp (312 710 7669) </a> <p style="margin-top: 15px;"><strong>Email:</strong> <a href="mailto:danielmarchenaa@gmail.com">danielmarchenaa@gmail.com</a></p> <p><strong>Horario:</strong> Lunes a Sábado: 8:00 AM - 5:00 PM</p>
+                      </div>
+                      <div class="contact-form" style="margin-top: 30px;">
+                          <h4>Envíanos un Mensaje</h4>
+                          <form action="https://formsubmit.co/danielmarchenaa@gmail.com" method="POST"> <label for="name">Nombre:</label><input type="text" id="name" name="name" required> <label for="email">Correo Electrónico:</label><input type="email" id="email" name="email" required> <label for="subject">Asunto:</label><input type="text" id="subject" name="subject" value="Mensaje desde la Web Santa Rosa"> <label for="message">Mensaje:</label><textarea id="message" name="message" required></textarea> <input type="text" name="_honey" style="display:none"><input type="hidden" name="_captcha" value="false"> <button type="submit" class="cta-button">Enviar Mensaje</button> <p style="font-size:0.8em; color:#888; margin-top:10px;">Recibirás una copia...</p> </form>
+                      </div>
+                  </div>
+                  <div class="map-container"> <!-- Columna Derecha: Mapa -->
+                       <h4>Nuestra Zona de Operación (Ejemplo)</h4> <p style="text-align: center; font-size: 0.9em; color: var(--text-light); margin-top:-10px; margin-bottom: 20px;">Cubrimos gran parte de Barranquilla. ¡Pregúntanos por tu barrio!</p>
+                       <div class="map-responsive"> <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d62671.87997471153!2d-74.82768714863282!3d11.000020900000008!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8ef42d4ab67e0549%3A0x73334f557be2a4f2!2sBarranquilla%2C%20Atl%C3%A1ntico!5e0!3m2!1ses!2sco!4v1713318118445!5m2!1ses!2sco" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe> </div>
+                       <p style="text-align: center; font-size: 0.8em; color: #999; margin-top: 10px;">Mapa de ejemplo centrado en Barranquilla.</p>
+                   </div>
+             </div>
+         </section>
+
+         <!-- Formulario Oculto para Enviar Pedido por Correo -->
+         <form id="hidden-order-form" action="https://formsubmit.co/danielmarchenaa@gmail.com" method="POST" style="display: none;">
+             <input type="hidden" name="_subject" value="¡Nuevo Pedido Recibido! - Santa Rosa Fresh Market">
+             <textarea name="pedido_completo" id="hidden-order-details"></textarea>
+             <input type="text" name="_honey" style="display:none">
+             <input type="hidden" name="_captcha" value="false">
+             <!-- Redirección opcional tras enviar a FormSubmit -->
+             <!-- <input type="hidden" name="_next" value="https://tusitio.com/gracias.html"> -->
+          </form>
+
+         <!-- === Modal para Datos de Entrega === -->
+         <div id="delivery-modal" class="modal">
+           <div class="modal-content">
+             <span class="close-btn" onclick="cerrarModal()">&times;</span>
+             <h3>Completa tus Datos para la Entrega</h3>
+             <form id="delivery-form" class="modal-form" onsubmit="finalizarPedido(event)">
+                  <p class="error-message" id="modal-error-msg"></p> <!-- Para mensajes de error -->
+                  <label for="delivery-name">Nombre Completo:</label> <input type="text" id="delivery-name" name="nombre" required>
+                  <label for="delivery-address">Dirección Completa:</label> <input type="text" id="delivery-address" name="direccion" placeholder="Ej: Calle 72 # 50 - 10" required>
+                  <label for="delivery-extra">Barrio / Apto / Casa / Conjunto:</label> <input type="text" id="delivery-extra" name="barrio_apto" placeholder="Ej: Barrio Boston, Apto 101" required>
+                  <label for="delivery-phone">Teléfono de Contacto:</label> <input type="tel" id="delivery-phone" name="telefono" placeholder="Ej: 3127107669" required pattern="[0-9]{10}"> <div class="form-note">Ingresa 10 dígitos sin espacios ni símbolos.</div>
+                  <label for="delivery-time">Preferencia de Hora de Entrega:</label> <select id="delivery-time" name="hora_preferencia" required> <option value="" disabled selected>-- Selecciona una franja --</option> <option value="Manana_9_12">Mañana (9:00 AM - 12:00 PM)</option> <option value="Tarde_2_5">Tarde (2:00 PM - 5:00 PM)</option> </select> <div class="form-note">Haremos lo posible por cumplir la franja. Son horas aproximadas.</div>
+                  <label>Método de Pago:</label> <div class="radio-group"> <label><input type="radio" name="metodo_pago" value="Efectivo" required> Efectivo</label><br> <label><input type="radio" name="metodo_pago" value="Nequi"> Nequi</label><br> <label><input type="radio" name="metodo_pago" value="Tarjeta"> Tarjeta (Datáfono)</label> </div>
+                  <button type="submit" id="finalizar-pedido-btn" class="cta-button"> Finalizar Pedido y Enviar </button>
+             </form>
+           </div>
+         </div>
+         <!-- === Fin Modal === -->
+
+     </div> <!-- Fin .container -->
+
+     <footer>
+         <p>© <span id="current-year"></span> Santa Rosa Fresh Market. Diseñado con ♥ en Barranquilla.</p>
+     </footer>
+
+    <script>
+        // --- Funciones de formato y cantidad (iguales) ---
+        function formatCurrency(value) { return `$ ${parseInt(value).toLocaleString('es-CO')}`; }
+        function changeQuantity(productId, change) { const itemDiv=document.querySelector(`.product-item[data-product-id="${productId}"]`); if (!itemDiv) return; const qS=itemDiv.querySelector('.quantity-display'); const cQ=parseInt(qS.textContent); let nQ=cQ+change; if(nQ<1){nQ=1;} qS.textContent=nQ; const mB=itemDiv.querySelector('.minus-btn'); if(mB){mB.disabled=(nQ<=1);} const cB=itemDiv.querySelector('.add-checkbox'); if(cB&&cB.checked){actualizarFactura();} }
+
+        // --- Función Principal de Factura (igual) ---
+        function actualizarFactura() { const iB=document.getElementById('invoice-items'); const iS=document.getElementById('invoice-subtotal'); const iD=document.getElementById('invoice-delivery'); const iT=document.getElementById('invoice-total'); iB.innerHTML=''; let s=0; const dC=5000; let iA=false; const aC=document.querySelectorAll('#productList .add-checkbox:checked, #comboList .combo-checkbox:checked'); let hI=aC.length>0; aC.forEach(cb=>{iA=true; const n=cb.getAttribute('data-name'); const u=cb.getAttribute('data-unit'); const p=parseFloat(cb.value); let q=1; const pC=cb.closest('.product-item, .combo-box'); if(pC&&pC.classList.contains('product-item')){const qS=pC.querySelector('.quantity-display'); if(qS){q=parseInt(qS.textContent||'1'); if(isNaN(q)||q<1){q=1;}}} const tI=p*q; s+=tI; const r=document.createElement('tr'); let dN=u==='Combo'?`${n} (Combo)`:`${n} (${u})`; r.innerHTML=`<td>${dN}</td><td class="quantity">${q}</td><td class="amount">${formatCurrency(p)}</td><td class="amount">${formatCurrency(tI)}</td>`; iB.appendChild(r);}); if(!iA){iB.innerHTML='<tr><td colspan="4" style="text-align: center; color: #888;">Añade productos o combos marcando la casilla.</td></tr>';} const t=s+(s>0?dC:0); iS.textContent=formatCurrency(s); iD.textContent=formatCurrency(s>0?dC:0); iT.textContent=formatCurrency(t); const cB=document.getElementById('confirmar-pedido-btn'); if(cB){cB.disabled=!hI;} }
+
+
+        // --- FUNCIONES NUEVAS Y MODIFICADAS PARA FLUJO DE PEDIDO ---
+        const modal = document.getElementById('delivery-modal');
+        const modalForm = document.getElementById('delivery-form');
+        const modalErrorMsg = document.getElementById('modal-error-msg');
+        const finalizarBtn = document.getElementById('finalizar-pedido-btn'); // Referencia al botón del modal
+
+        // 1. Abre el Modal de Datos de Entrega
+        function solicitarInfoEntrega() {
+            const invoiceItemsBody = document.getElementById('invoice-items');
+            if (invoiceItemsBody.querySelector('td[colspan="4"]')) {
+                alert("Por favor, añade al menos un producto o combo a tu pedido antes de continuar.");
+                return;
+            }
+            if(modalErrorMsg) modalErrorMsg.style.display = 'none';
+            if (modal) modal.style.display = "block";
+            // Asegurarse que el botón Finalizar esté habilitado al abrir
+            if(finalizarBtn) {
+                 finalizarBtn.disabled = false;
+                 finalizarBtn.textContent = "Finalizar Pedido y Enviar";
+            }
+        }
+
+        // 2. Cierra el Modal
+        function cerrarModal() {
+            if (modal) modal.style.display = "none";
+            // Resetear botón finalizar si se cierra manualmente
+             if(finalizarBtn) {
+                 finalizarBtn.disabled = false;
+                 finalizarBtn.textContent = "Finalizar Pedido y Enviar";
+             }
+        }
+        window.onclick = function(event) { if (event.target == modal) { cerrarModal(); } } // Cerrar al clickear fuera
+
+        // 3. Finaliza el pedido (botón DENTRO del modal)
+        function finalizarPedido(event) {
+             event.preventDefault();
+             console.log("Intentando finalizar pedido...");
+             if(modalErrorMsg) modalErrorMsg.style.display = 'none';
+
+             if (!modalForm.checkValidity()) {
+                 if(modalErrorMsg) { modalErrorMsg.textContent = "Por favor, completa todos los campos requeridos."; modalErrorMsg.style.display = 'block'; }
+                 modalForm.reportValidity();
+                 console.log("Validación modal falló.");
+                 return;
+             }
+
+             if(finalizarBtn) { // Usar la referencia global
+                finalizarBtn.disabled = true;
+                finalizarBtn.textContent = "Procesando...";
+             }
+
+             // Recolectar Datos de Entrega
+             const nombre = document.getElementById('delivery-name').value.trim();
+             const direccion = document.getElementById('delivery-address').value.trim();
+             const extra = document.getElementById('delivery-extra').value.trim();
+             const telefono = document.getElementById('delivery-phone').value.trim();
+             const horaPref = document.getElementById('delivery-time').value;
+             const metodoPago = document.querySelector('input[name="metodo_pago"]:checked')?.value || 'No especificado';
+
+             // Preparar Texto Combinado para Email
+             const textoPedido = prepararTextoPedido();
+             const textoEntrega = `\n\n=== Datos de Entrega ===\nNombre: ${nombre}\nTeléfono: ${telefono}\nDirección: ${direccion}\nBarrio/Apto/Casa: ${extra}\nHora Preferencia: ${horaPref.replace('_', ' ')}\nMétodo de Pago: ${metodoPago}\n========================`;
+             const textoCompletoEmail = textoPedido + textoEntrega;
+
+             // Enviar Email (Texto)
+             enviarPedidoPorEmail(textoCompletoEmail);
+
+             // NO HAY GENERACIÓN DE PDF AQUÍ
+
+             // Mostrar Confirmación Final (con un pequeño delay para simular proceso y permitir envío de form)
+             setTimeout(() => {
+                 cerrarModal(); // Cierra el modal
+                 const pedidoActionsDiv = document.getElementById('pedido-actions-div');
+                 const confirmacionDiv = document.getElementById('pedido-confirmacion');
+                 const invoiceElement = document.getElementById('invoiceToPrint'); // El div de la factura
+
+                 if (invoiceElement) invoiceElement.style.display = 'none'; // Ocultar factura
+                 if (pedidoActionsDiv) pedidoActionsDiv.style.display = 'none'; // Ocultar botón inicial
+                 if (confirmacionDiv) confirmacionDiv.style.display = 'block'; // Mostrar confirmación final
+
+                 console.log("Pedido finalizado y confirmado en UI.");
+            }, 1500); // Delay de 1.5 segundos (ajustable)
+        }
+
+        // 4. Prepara el texto del pedido (solo factura)
+        function prepararTextoPedido() { /* ... igual que antes ... */
+            let texto = `=== Pedido - Santa Rosa Fresh Market ===\n\n`; const fecha = new Date().toLocaleString('es-CO', { dateStyle: 'long', timeStyle: 'short'}); texto += `Fecha: ${fecha}\n\nDetalles:\n`; texto += `---------------------------------------------\n`; texto += `Producto/Combo        Cant.    Precio Unit.   Total\n`; texto += `---------------------------------------------\n`; let s=0; const aC=document.querySelectorAll('#productList .add-checkbox:checked, #comboList .combo-checkbox:checked'); aC.forEach(cb=>{const n=cb.getAttribute('data-name'); const u=cb.getAttribute('data-unit'); const p=parseFloat(cb.value); let q=1; const pC=cb.closest('.product-item, .combo-box'); if(pC&&pC.classList.contains('product-item')){const qS=pC.querySelector('.quantity-display'); if(qS){q=parseInt(qS.textContent||'1'); if(isNaN(q)||q<1){q=1;}}} const tI=p*q; s+=tI; let iN=u==='Combo'?`${n} (Combo)`:n; let pS=formatCurrency(p).padEnd(12); let tS=formatCurrency(tI).padStart(10); let qS=String(q).padStart(4); let nS=iN.padEnd(20); texto+=`${nS} ${qS}   ${pS} ${tS}\n`;}); texto += `---------------------------------------------\n`; const dC=(s>0?5000:0); const t=s+dC; texto += `Subtotal: ${formatCurrency(s).padStart(39)}\n`; texto += `Domicilio: ${formatCurrency(dC).padStart(37)}\n`; texto += `TOTAL: ${formatCurrency(t).padStart(41)}\n`; texto += `---------------------------------------------\n`; return texto;
+        }
+
+        // 5. Envía el pedido por correo (texto) usando FormSubmit
+        function enviarPedidoPorEmail(textoCompleto) {
+             console.log("Enviando email con FormSubmit...");
+             const hiddenForm = document.getElementById('hidden-order-form');
+             const hiddenTextarea = document.getElementById('hidden-order-details');
+             if (hiddenForm && hiddenTextarea) {
+                hiddenTextarea.value = textoCompleto;
+                try {
+                    // No necesitamos esperar, simplemente enviamos
+                    hiddenForm.submit();
+                    console.log("Formulario oculto enviado a FormSubmit.");
+                } catch (e) { console.error("Error submit:", e); }
+             } else { console.error("Formulario oculto no encontrado."); }
+        }
+
+        // 6. Reinicia el pedido
+        function reiniciarPedido() {
+            console.log("Reiniciando pedido...");
+            document.querySelectorAll('.add-checkbox:checked').forEach(cb => cb.checked = false);
+            document.querySelectorAll('.quantity-display').forEach(span => { span.textContent = '1'; const mb = span.previousElementSibling; if (mb && mb.classList.contains('minus-btn')) { mb.disabled = true; } });
+            actualizarFactura();
+
+            const confirmacionDiv = document.getElementById('pedido-confirmacion');
+            const invoiceElement = document.getElementById('invoiceToPrint');
+            const pedidoActionsDiv = document.getElementById('pedido-actions-div');
+            const confirmBtn = document.getElementById('confirmar-pedido-btn');
+
+            if (confirmacionDiv) confirmacionDiv.style.display = 'none';
+            if (invoiceElement) invoiceElement.style.display = 'block';
+            if (pedidoActionsDiv) pedidoActionsDiv.style.display = 'block';
+            if (confirmBtn) { confirmBtn.disabled = true; } // Deshabilitado hasta añadir items
+            if (modalForm) modalForm.reset(); // Limpiar formulario modal
+            cerrarModal();
+            console.log("Pedido reiniciado.");
+        }
+
+        // --- Función Inicial y Event Listeners ---
+        function setInitialData() {
+             const today=new Date(), d=String(today.getDate()).padStart(2,'0'), m=String(today.getMonth()+1).padStart(2,'0'), y=today.getFullYear(); const dateEl=document.getElementById('invoice-date'), yearEl=document.getElementById('current-year'); if(dateEl) dateEl.textContent=`${d}/${m}/${y}`; if(yearEl) yearEl.textContent=y; actualizarFactura(); document.querySelectorAll('.quantity-display').forEach(span => { if (parseInt(span.textContent) <= 1) { const mb = span.previousElementSibling; if (mb && mb.classList.contains('minus-btn')) { mb.disabled = true; } } });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            setInitialData();
+            // Código de scroll y active state (sin cambios)
+            const headerElement = document.querySelector('header'); const navElement = document.querySelector('nav'); let topOffset = 135; function calculateOffset() { let currentOffset = 135; try { if (headerElement && navElement && getComputedStyle(headerElement).position === 'fixed') { currentOffset = headerElement.offsetHeight + navElement.offsetHeight + 15; } else if (headerElement && getComputedStyle(headerElement).position === 'fixed') { currentOffset = headerElement.offsetHeight + 15; } else if (navElement && getComputedStyle(navElement).position === 'fixed') { currentOffset = navElement.offsetHeight + 15; } } catch(e) { console.warn("Error calculating offset", e); } return currentOffset; } topOffset = calculateOffset(); window.addEventListener('resize', () => { topOffset = calculateOffset(); }); const navLinks=document.querySelectorAll('nav ul li a'),sections=document.querySelectorAll('section'); navLinks.forEach(l=>{l.addEventListener('click',e=>{const t=l.getAttribute('href');if(t.startsWith('#')&&t.length>1){e.preventDefault();const el=document.querySelector(t);if(el){const pos=el.getBoundingClientRect().top+window.pageYOffset-topOffset;window.scrollTo({top:pos,behavior:"smooth"})}}})}); window.addEventListener('scroll',()=>{let c='';sections.forEach(s=>{const st=s.offsetTop-topOffset;if(st<0&&Math.abs(st)<10){st=0;} const sh=s.clientHeight;if(pageYOffset>=st&&pageYOffset<st+sh){c=s.getAttribute('id')}});if(pageYOffset<(sections[0]?.offsetTop||0)-topOffset){c=sections[0]?.getAttribute('id')||''}if((window.innerHeight+window.pageYOffset)>=document.body.offsetHeight-5){c=sections[sections.length-1]?.getAttribute('id')||''}navLinks.forEach(l=>{l.classList.remove('active');const h=l.getAttribute('href');if(h&&c&&h.includes(c)){l.classList.add('active')}})},{passive:true});
+        });
+    </script>
+
+</body>
+</html>
